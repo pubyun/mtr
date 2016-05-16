@@ -11,6 +11,7 @@ LOGDIR = "log/"
 HOSTS = "hosts.txt"
 hosts = {}
 
+
 class Mtr(threading.Thread):
     def __init__(self, ip):
         threading.Thread.__init__(self)
@@ -24,11 +25,12 @@ class Mtr(threading.Thread):
         while (self._runing):
             # mtr -c 60 -o "LSD NABWV" -rwn $1
             cmd = ["mtr", "-c", "60", "-o", "LSD NABWV", "-rwn", self._ip]
-            proc = subprocess.Popen(cmd,stdout=subprocess.PIPE)
+            proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
             fullname = os.path.join(LOGDIR, "%s.log" % self._ip)
             with open(fullname, "a") as f:
                 for line in proc.stdout:
                     f.write(line)
+
 
 def run_mtr():
     if not os.path.exists(LOGDIR):
@@ -36,6 +38,7 @@ def run_mtr():
     for ip in hosts:
         mtr = Mtr(ip)
         mtr.start()
+
 
 def read_hosts():
     if not os.path.isfile(HOSTS):
@@ -45,6 +48,7 @@ def read_hosts():
         for line in f:
             (ip, desc) = line.split()
             hosts[ip] = desc
+
 
 def process_host_log(logfile):
     ip, file_extension = os.path.splitext(logfile)
@@ -73,12 +77,14 @@ def process_logs():
         if logfile.endswith(".log"):
             process_host_log(logfile)
 
+
 def main():
     read_hosts()
     if len(sys.argv) > 1 and "log" == sys.argv[1]:
         process_logs()
     else:
         run_mtr()
+
 
 if __name__ == '__main__':
     main()
