@@ -33,7 +33,7 @@
 
 #### 对检测主机的丢包情况排序
 
-    grep timeout report.txt |sort -n -k 4
+    grep 丢包 report.txt |sort -n -k 5
 
 将主机按照丢包情况，进行排序。
 

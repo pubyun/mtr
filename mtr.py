@@ -48,18 +48,20 @@ def read_hosts():
 
 def process_host_log(logfile):
     ip, file_extension = os.path.splitext(logfile)
-    pat = re.compile(ip + ".+(\d+\.\d+)%")
+    pat = re.compile(ip + "\s+(\d+\.\d+)%\s+(\d+)\s+(\d+)")
     fullname = os.path.join(LOGDIR, logfile)
     errors = 0
+    count = 0
     with open(fullname, 'r') as f:
         for line in f:
             if line.startswith("Start: "):
                 started = line
-            m = pat.findall(line)
-            if m and float(m[0]) > 0:
+            m = pat.search(line)
+            if m and int(m.group(3)) > 0:
                 print started, line,
                 errors += 1
-    print "%s - %s: %d timeout" % (ip, hosts[ip], errors)
+                count += int(m.group(3))
+    print "%s - %s: 丢包次数 %d 丢包数 %d" % (ip, hosts.get(ip, "未知"), errors, count)
     if errors:
         print "-" * 40
     else:
