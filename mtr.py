@@ -28,10 +28,10 @@ class Mtr(threading.Thread):
     def run(self):
         while (self._runing):
             proc = subprocess.Popen(self._cmd, stdout=subprocess.PIPE)
+            out, err = proc.communicate()
             fullname = os.path.join(LOGDIR, "%s.log" % self._ip)
             with open(fullname, "a") as f:
-                for line in proc.stdout:
-                    f.write(line)
+                f.write(out)
 
 
 def run_mtr():
