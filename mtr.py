@@ -4,6 +4,7 @@
 import os
 import re
 import sys
+import time
 import threading
 import subprocess
 import shlex
@@ -17,29 +18,28 @@ class Mtr(threading.Thread):
     def __init__(self, ip):
         threading.Thread.__init__(self)
         self._ip = ip
-        self._runing = True
         cmd = "mtr -c 60 -o 'LSD NABWV' -rwn"
         self._cmd = shlex.split(cmd)
         self._cmd.append(self._ip)
 
-    def stop(self):
-        self._runing = False
-
     def run(self):
-        while (self._runing):
-            proc = subprocess.Popen(self._cmd, stdout=subprocess.PIPE)
-            out, err = proc.communicate()
-            fullname = os.path.join(LOGDIR, "%s.log" % self._ip)
-            with open(fullname, "a") as f:
-                f.write(out)
+        proc = subprocess.Popen(self._cmd, stdout=subprocess.PIPE)
+        out, err = proc.communicate()
+        fullname = os.path.join(LOGDIR, "%s.log" % self._ip)
+        with open(fullname, "a") as f:
+            f.write(out)
 
 
 def run_mtr():
     if not os.path.exists(LOGDIR):
         os.makedirs(LOGDIR)
-    for ip in hosts:
-        mtr = Mtr(ip)
-        mtr.start()
+    while True:
+        for ip in hosts:
+            mtr = Mtr(ip)
+            # 主线程完成了，不管子线程是否完成，都要和主线程一起退出
+            mtr.setDaemon(True)
+            mtr.start()
+        time.sleep(60)
 
 
 def read_hosts():
