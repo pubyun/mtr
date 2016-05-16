@@ -38,7 +38,7 @@ def run_mtr():
         mtr.start()
 
 def read_hosts():
-    if os.path.isfile(HOSTS):
+    if not os.path.isfile(HOSTS):
         print "%s not exist" % HOSTS
         sys.exit(1)
     with open(HOSTS, "r") as f:
