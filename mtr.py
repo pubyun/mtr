@@ -6,6 +6,7 @@ import re
 import sys
 import threading
 import subprocess
+import shlex
 
 LOGDIR = "log/"
 HOSTS = "hosts.txt"
@@ -17,15 +18,16 @@ class Mtr(threading.Thread):
         threading.Thread.__init__(self)
         self._ip = ip
         self._runing = True
+        cmd = "mtr -c 60 -o 'LSD NABWV' -rwn"
+        self._cmd = shlex.split(cmd)
+        self._cmd.append(self._ip)
 
     def stop(self):
         self._runing = False
 
     def run(self):
         while (self._runing):
-            # mtr -c 60 -o "LSD NABWV" -rwn $1
-            cmd = ["mtr", "-c", "60", "-o", "LSD NABWV", "-rwn", self._ip]
-            proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+            proc = subprocess.Popen(self._cmd, stdout=subprocess.PIPE)
             fullname = os.path.join(LOGDIR, "%s.log" % self._ip)
             with open(fullname, "a") as f:
                 for line in proc.stdout:
