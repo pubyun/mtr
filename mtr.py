@@ -18,7 +18,7 @@ class Mtr(threading.Thread):
     def __init__(self, ip):
         threading.Thread.__init__(self)
         self._ip = ip
-        cmd = "mtr -c 60 -o 'LSD NABWV' -rwn"
+        cmd = "mtr -u -c 60 -o 'LSD NABWV' -rwn"
         self._cmd = shlex.split(cmd)
         self._cmd.append(self._ip)
 
