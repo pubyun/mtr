@@ -9,17 +9,18 @@
 ## 安装说明
 
     git clone https://github.com/pubyun/mtr.git
-    yum -y install mtr tmux
-    setcap cap_net_raw+ep /usr/sbin/mtr
-    getcap /usr/sbin/mtr
+    sudo yum -y install mtr tmux
+    sudo setcap cap_net_raw+ep /usr/sbin/mtr
+    sudo getcap /usr/sbin/mtr
 
 
 CentOS 6的mtr 版本是0.75，太老了，需要手工编译安装：
 
-    rpm -e mtr
+    sudo rpm -e mtr
     git clone https://github.com/traviscross/mtr.git
     cd mtr
-    ./bootstrap.sh && ./configure --without-gtk && make install
+    ./bootstrap.sh && ./configure --without-gtk && make
+    sudo make install
     sudo setcap cap_net_raw+ep /usr/local/sbin/mtr
     sudo getcap /usr/local/sbin/mtr
 
@@ -30,6 +31,9 @@ CentOS 6的mtr 版本是0.75，太老了，需要手工编译安装：
 修改 hosts.txt 文件。注意IP地址和说明之间要用空格分开。
 
 ### 监测并且记录
+
+使用 tmux ，将 mtr.py 放在后台运行，退出登录也不会导致mtr.py被杀掉。
+使用 tmux a 可以将之前的会话呼出
 
     python mtr.py
 
