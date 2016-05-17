@@ -34,12 +34,12 @@ def run_mtr():
     if not os.path.exists(LOGDIR):
         os.makedirs(LOGDIR)
     while True:
+        time.sleep(60.0 - time.time() % 60.0)
         for ip in hosts:
             mtr = Mtr(ip)
             # 主线程完成了，不管子线程是否完成，都要和主线程一起退出
             mtr.setDaemon(True)
             mtr.start()
-        time.sleep(60)
 
 
 def read_hosts():
