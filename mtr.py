@@ -5,6 +5,7 @@ import os
 import re
 import sys
 import time
+import datetime
 import threading
 import subprocess
 import shlex
@@ -27,6 +28,8 @@ class Mtr(threading.Thread):
         out, err = proc.communicate()
         fullname = os.path.join(LOGDIR, "%s.log" % self._ip)
         with open(fullname, "a") as f:
+            if "Start: " not in out:
+                f.write("Start: %s\n" % unicode(datetime.datetime.now()))
             f.write(out)
 
 

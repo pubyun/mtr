@@ -13,17 +13,6 @@
     sudo setcap cap_net_raw+ep /usr/sbin/mtr
     sudo getcap /usr/sbin/mtr
 
-
-CentOS 6的mtr 版本是0.75，太老了，需要手工编译安装：
-
-    sudo rpm -e mtr
-    git clone https://github.com/traviscross/mtr.git
-    cd mtr
-    ./bootstrap.sh && ./configure --without-gtk && make
-    sudo make install
-    sudo setcap cap_net_raw+ep /usr/local/sbin/mtr
-    sudo getcap /usr/local/sbin/mtr
-
 ## 使用方法
 
 ### 设定被监测的主机
