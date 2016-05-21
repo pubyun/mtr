@@ -9,16 +9,64 @@ import datetime
 import threading
 import subprocess
 import shlex
+import Queue
+import cStringIO
+import codecs
+import socket
+import smtplib
+from email.mime.text import MIMEText
 
 LOGDIR = "log/"
 HOSTS = "hosts.txt"
+
+# 超过多少台机器同时丢包, 就发送报警
+LOSTS_WARNING = 5
+TO = ["sysadm@pubyun.com"]
+FROM = "sysadm@sys.pubyun.com"
+
 hosts = {}
+
+class HandleMinute(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+
+    def run(self):
+        now = datetime.datetime.now()
+        queues = Queue.Queue()
+        threads = [Mtr(ip, queues) for ip in hosts]
+        # 主线程完成了，不管子线程是否完成，都要和主线程一起退出
+        _ = [t.setDaemon(True) for t in threads]
+        _ = [t.start() for t in threads]
+        _ = [t.join() for t in threads]
+        losts = {}
+        while not queues.empty():
+            (ip, msg) = queues._get()
+            losts[ip] = msg
+        if (len(losts) > LOSTS_WARNING):
+            self.warning(now, losts)
+
+    def warning(self, now, losts):
+        buffer = cStringIO.StringIO()
+        output = codecs.getwriter("utf8")(buffer)
+        output.write(u"测试时间: %s\n" % unicode(now))
+        output.write(u"丢包主机: %d\n" % len(losts))
+        for ip in losts:
+            output.write(u"%s: %s\n" % (hosts.get(ip, u"未知"), losts[ip]))
+        msg = MIMEText(output.getvalue())
+        output.close()
+        msg['Subject'] = u'%s丢包告警, %d个IP丢包' % (socket.gethostname(), len(losts))
+        msg['From'] = FROM
+        msg['To'] = ", ".join(TO)
+        s = smtplib.SMTP('localhost')
+        s.sendmail(FROM, TO, msg.as_string())
+        s.quit()
 
 
 class Mtr(threading.Thread):
-    def __init__(self, ip):
+    def __init__(self, ip, queues):
         threading.Thread.__init__(self)
         self._ip = ip
+        self._queues = queues
         cmd = "mtr -c 60 -o 'LSD NABWV' -rwn"
         self._cmd = shlex.split(cmd)
         self._cmd.append(self._ip)
@@ -29,9 +77,16 @@ class Mtr(threading.Thread):
         out, err = proc.communicate()
         fullname = os.path.join(LOGDIR, "%s.log" % self._ip)
         with open(fullname, "a") as f:
+            # 写日志时间
             if "Start: " not in out:
                 f.write("Start: %s\n" % unicode(now))
             f.write(out)
+        # 如果丢包, 则返回IP和丢包信息
+        pat = re.compile(self._ip + "\s+(\d+\.\d+)%\s+(\d+)\s+(\d+)")
+        for line in out.split("\n"):
+            m = pat.search(line)
+            if m and int(m.group(3)) > 0:
+                self._queues.put((self._ip, line))
 
 
 def run_mtr():
@@ -39,17 +94,16 @@ def run_mtr():
         os.makedirs(LOGDIR)
     while True:
         time.sleep(60.0 - time.time() % 60.0)
-        threads = [Mtr(ip) for ip in hosts]
-        # 主线程完成了，不管子线程是否完成，都要和主线程一起退出
-        _ = [t.setDaemon(True) for t in threads]
-        _ = [t.start() for t in threads]
+        h = HandleMinute()
+        h.setDaemon(True)
+        h.start()
 
 
 def read_hosts():
     if not os.path.isfile(HOSTS):
         print "%s not exist" % HOSTS
         sys.exit(1)
-    with open(HOSTS, "r") as f:
+    with codecs.open(HOSTS, "r", "utf-8") as f:
         for line in f:
             (ip, desc) = line.split()
             hosts[ip] = desc
