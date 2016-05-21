@@ -38,10 +38,9 @@ class HandleMinute(threading.Thread):
         _ = [t.setDaemon(True) for t in threads]
         _ = [t.start() for t in threads]
         _ = [t.join() for t in threads]
-        losts = {}
+        losts = []
         while not queues.empty():
-            (ip, msg) = queues._get()
-            losts[ip] = msg
+            losts.append(queues._get())
         if (len(losts) > LOSTS_WARNING):
             self.warning(now, losts)
 
@@ -50,8 +49,9 @@ class HandleMinute(threading.Thread):
         output = codecs.getwriter("utf8")(buffer)
         output.write(u"测试时间: %s\n" % unicode(now))
         output.write(u"丢包主机: %d\n" % len(losts))
-        for ip in losts:
-            output.write(u"%s: %s\n" % (hosts.get(ip, u"未知"), losts[ip]))
+        losts.sort(key=lambda i: i[1], reverse=True)
+        for (ip, msg, lost) in losts:
+            output.write(u"%s: %s\n" % (hosts.get(ip, u"未知"), msg))
         msg = MIMEText(output.getvalue())
         output.close()
         msg['Subject'] = u'%s丢包告警, %d个IP丢包' % (socket.gethostname(), len(losts))
@@ -86,7 +86,7 @@ class Mtr(threading.Thread):
         for line in out.split("\n"):
             m = pat.search(line)
             if m and int(m.group(3)) > 0:
-                self._queues.put((self._ip, line))
+                self._queues.put((self._ip, line, int(m.group(3))))
 
 
 def run_mtr():
