@@ -24,12 +24,13 @@ class Mtr(threading.Thread):
         self._cmd.append(self._ip)
 
     def run(self):
+        now = datetime.datetime.now()
         proc = subprocess.Popen(self._cmd, stdout=subprocess.PIPE)
         out, err = proc.communicate()
         fullname = os.path.join(LOGDIR, "%s.log" % self._ip)
         with open(fullname, "a") as f:
             if "Start: " not in out:
-                f.write("Start: %s\n" % unicode(datetime.datetime.now()))
+                f.write("Start: %s\n" % unicode(now))
             f.write(out)
 
 
