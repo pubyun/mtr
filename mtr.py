@@ -49,7 +49,7 @@ class HandleMinute(threading.Thread):
         output = codecs.getwriter("utf8")(buffer)
         output.write(u"测试时间: %s\n" % unicode(now))
         output.write(u"丢包主机: %d\n" % len(losts))
-        losts.sort(key=lambda i: i[1], reverse=True)
+        losts.sort(key=lambda i: i[2], reverse=True)
         for (ip, msg, lost) in losts:
             output.write(u"%s: %s\n" % (hosts.get(ip, u"未知"), msg))
         msg = MIMEText(output.getvalue())
