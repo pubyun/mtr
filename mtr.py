@@ -44,6 +44,11 @@ class HandleMinute(threading.Thread):
         if (len(losts) > LOSTS_WARNING):
             self.warning(now, losts)
 
+    def get_ip_address(self):
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("114.114.114.114", 80))
+        return s.getsockname()[0]
+
     def warning(self, now, losts):
         buffer = cStringIO.StringIO()
         output = codecs.getwriter("utf8")(buffer)
@@ -54,7 +59,8 @@ class HandleMinute(threading.Thread):
             output.write(u"%s: %s\n" % (hosts.get(ip, u"未知"), msg))
         msg = MIMEText(output.getvalue())
         output.close()
-        msg['Subject'] = u'%s丢包告警, %d个IP丢包' % (socket.gethostname(), len(losts))
+        msg['Subject'] = u'%s丢包告警, %d个IP丢包, %s' \
+                         % (self.get_ip_address(), len(losts), unicode(now))
         msg['From'] = FROM
         msg['To'] = ", ".join(TO)
         s = smtplib.SMTP('localhost')
