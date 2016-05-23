@@ -31,7 +31,7 @@ class HandleMinute(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
-        now = datetime.datetime.now()
+        now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         queues = Queue.Queue()
         threads = [Mtr(ip, queues) for ip in hosts]
         # 主线程完成了，不管子线程是否完成，都要和主线程一起退出
@@ -58,7 +58,7 @@ class HandleMinute(threading.Thread):
     def warning(self, now, losts):
         buffer = cStringIO.StringIO()
         output = codecs.getwriter("utf8")(buffer)
-        output.write(u"测试时间: %s\n" % unicode(now))
+        output.write(u"测试时间: %s\n" % now)
         output.write(u"丢包主机: %d\n\n" % len(losts))
         output.write(
             u"归属地   IP地址          丢包率  发包 丢包  Last  Avg   Best  Wrst  StDev\n")
@@ -68,7 +68,7 @@ class HandleMinute(threading.Thread):
         msg = MIMEText(output.getvalue())
         output.close()
         msg['Subject'] = u'%s丢包告警, %d个IP丢包, %s' \
-                         % (self.get_ip_address(), len(losts), unicode(now))
+                         % (self.get_ip_address(), len(losts), now)
         msg['From'] = FROM
         msg['To'] = ", ".join(TO)
         s = smtplib.SMTP('localhost')
@@ -86,14 +86,14 @@ class Mtr(threading.Thread):
         self._cmd.append(self._ip)
 
     def run(self):
-        now = datetime.datetime.now()
+        now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         proc = subprocess.Popen(self._cmd, stdout=subprocess.PIPE)
         out, err = proc.communicate()
         fullname = os.path.join(LOGDIR, "%s.log" % self._ip)
         with open(fullname, "a") as f:
             # 写日志时间
             if "Start: " not in out:
-                f.write("Start: %s\n" % unicode(now))
+                f.write("Start: %s\n" % now)
             f.write(out)
         # 如果丢包, 则返回IP和丢包信息
         pat = re.compile(self._ip + "\s+(\d+\.\d+)%\s+(\d+)\s+(\d+)")
