@@ -139,7 +139,7 @@ def process_host_log(logfile):
                 print started, line[m.start():],
                 errors += 1
                 count += int(m.group(3))
-    print u"{} - {}: 丢包次数 {} 丢包数 {}".format(ip, hosts.get(ip, u"未知"), errors, count)
+    print u"{0} - {1}: 丢包次数 {2} 丢包数 {3}".format(ip, hosts.get(ip, u"未知"), errors, count)
     if errors:
         print "-" * 40
     else:
