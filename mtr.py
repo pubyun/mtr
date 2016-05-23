@@ -46,8 +46,14 @@ class HandleMinute(threading.Thread):
 
     def get_ip_address(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("114.114.114.114", 80))
-        return s.getsockname()[0]
+        try:
+            s.connect(("114.114.114.114", 53))
+            ip = s.getsockname()[0]
+        except:
+            ip = '127.0.0.1'
+        finally:
+            s.close()
+        return ip
 
     def warning(self, now, losts):
         buffer = cStringIO.StringIO()
