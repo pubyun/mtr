@@ -12,6 +12,7 @@ import shlex
 import Queue
 import cStringIO
 import codecs
+import locale
 import socket
 import smtplib
 from email.mime.text import MIMEText
@@ -119,7 +120,7 @@ def read_hosts():
         sys.exit(1)
     with codecs.open(HOSTS, "r", "utf-8") as f:
         for line in f:
-            (ip, desc) = line.split(None, 1)
+            (ip, desc) = line.strip().split(None, 1)
             hosts[ip] = desc
 
 
@@ -135,10 +136,10 @@ def process_host_log(logfile):
                 started = line
             m = pat.search(line)
             if m and int(m.group(3)) > 0:
-                print started, line,
+                print started, line[m.start():],
                 errors += 1
                 count += int(m.group(3))
-    print "%s - %s: 丢包次数 %d 丢包数 %d" % (ip, hosts.get(ip, "未知"), errors, count)
+    print u"{} - {}: 丢包次数 {} 丢包数 {}".format(ip, hosts.get(ip, u"未知"), errors, count)
     if errors:
         print "-" * 40
     else:
@@ -160,4 +161,5 @@ def main():
 
 
 if __name__ == '__main__':
+    sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout)
     main()
