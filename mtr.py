@@ -59,7 +59,9 @@ class HandleMinute(threading.Thread):
         buffer = cStringIO.StringIO()
         output = codecs.getwriter("utf8")(buffer)
         output.write(u"测试时间: %s\n" % unicode(now))
-        output.write(u"丢包主机: %d\n" % len(losts))
+        output.write(u"丢包主机: %d\n\n" % len(losts))
+        output.write(
+            u"归属地   IP地址          丢包率  发包 丢包  Last  Avg   Best  Wrst  StDev\n")
         losts.sort(key=lambda i: i[2], reverse=True)
         for (ip, msg, lost) in losts:
             output.write(u"%s: %s\n" % (hosts.get(ip, u"未知"), msg))
@@ -98,7 +100,7 @@ class Mtr(threading.Thread):
         for line in out.split("\n"):
             m = pat.search(line)
             if m and int(m.group(3)) > 0:
-                self._queues.put((self._ip, line, int(m.group(3))))
+                self._queues.put((self._ip, line[m.start():], int(m.group(3))))
 
 
 def run_mtr():
