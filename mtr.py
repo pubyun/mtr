@@ -119,7 +119,7 @@ def read_hosts():
         sys.exit(1)
     with codecs.open(HOSTS, "r", "utf-8") as f:
         for line in f:
-            (ip, desc) = line.split()
+            (ip, desc) = line.split(None, 1)
             hosts[ip] = desc
 
 
