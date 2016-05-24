@@ -147,9 +147,9 @@ def process_host_log(logfile):
 
 
 def process_logs():
-    for logfile in os.listdir(LOGDIR):
-        if logfile.endswith(".log"):
-            process_host_log(logfile)
+    for ip in hosts:
+        logfile = "{0}.log".format(ip)
+        process_host_log(logfile)
 
 
 def main():
