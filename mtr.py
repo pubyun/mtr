@@ -27,6 +27,8 @@ FROM = "sysadm@sys.pubyun.com"
 
 hosts = {}
 
+DTFMT = "%a %B %d %X %Y"
+
 class HandleMinute(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
@@ -87,7 +89,7 @@ class Mtr(threading.Thread):
         self._cmd.append(self._ip)
 
     def run(self):
-        now = datetime.datetime.now().strftime("%a %B %d %X %Y")
+        now = datetime.datetime.now().strftime(DTFMT)
         proc = subprocess.Popen(self._cmd, stdout=subprocess.PIPE)
         out, err = proc.communicate()
         fullname = os.path.join(LOGDIR, "%s.log" % self._ip)
@@ -127,16 +129,19 @@ def read_hosts():
 def process_host_log(logfile):
     ip, file_extension = os.path.splitext(logfile)
     pat = re.compile(ip + "\s+(\d+\.\d+)%\s+(\d+)\s+(\d+)")
+    patdt = re.compile("^Start: (.+)")
     fullname = os.path.join(LOGDIR, logfile)
     errors = 0
     count = 0
     with open(fullname, 'r') as f:
         for line in f:
-            if line.startswith("Start: "):
-                started = line
+            m = patdt.search(line)
+            if m:
+                started = datetime.datetime.strptime(m.group(1), DTFMT)
             m = pat.search(line)
             if m and int(m.group(3)) > 0:
-                print started, line[m.start():],
+                print u"丢包时间: {0}".format(started.strftime('%Y-%m-%d %H:%M:%S'))
+                print line[m.start():],
                 errors += 1
                 count += int(m.group(3))
     print u"{0} - {1}: 丢包次数 {2} 丢包数 {3}".format(ip, hosts.get(ip, u"未知"), errors, count)
