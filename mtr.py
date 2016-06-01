@@ -27,7 +27,7 @@ FROM = "sysadm@sys.pubyun.com"
 
 hosts = {}
 
-DTFMT = "%a %B %d %X %Y"
+DTFMT = "%a %b %d %X %Y"
 
 class HandleMinute(threading.Thread):
     def __init__(self):
