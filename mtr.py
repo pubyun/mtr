@@ -22,7 +22,7 @@ HOSTS = "hosts.txt"
 
 # 超过多少台机器同时丢包, 就发送报警
 LOSTS_WARNING = 5
-TO = ["sysadm@pubyun.com"]
+TO = ["sysadm@example.com"]
 FROM = "sysadm@sys.pubyun.com"
 
 hosts = {}
